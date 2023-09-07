@@ -33,6 +33,11 @@ for base_url in base_urls:
                                 section_urls[a_tag["href"][6:11]] = set([str(base_url + a_tag["href"][6:])])
                             else:
                                 section_urls[a_tag["href"][6:11]].add(base_url + a_tag["href"][6:])
+                        elif (a_tag["href"][6:15] == "business/"):
+                            if (a_tag["href"][6:14] not in section_urls):
+                                section_urls[a_tag["href"][6:14]] = set([str(base_url + a_tag["href"][6:])])
+                            else:
+                                section_urls[a_tag["href"][6:14]].add(base_url + a_tag["href"][6:])
                         elif (a_tag["href"][6:] not in section_urls):
                             section_urls[a_tag["href"][6:]] = set([str(base_url + a_tag["href"][6:])])
                         else:
