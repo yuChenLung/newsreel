@@ -1,6 +1,8 @@
 # pip3 install beautifulsoup4
 import requests
 from bs4 import BeautifulSoup
+from newspaper import Article
+from fpdf import FPDF
 
 base_urls = ["https://www.nytimes.com/", "https://www.bbc.com/news/", "https://www.npr.org/sections/news/"]
 
@@ -45,9 +47,44 @@ for base_url in base_urls:
     else:
         print("Failed to fetch", base_url)
 
-print("Sections URLs:")
-for section in section_urls:
-    print(section)
-    for i in section_urls[section]:
-        print(i)
-    print()
+# print("Sections URLs:")
+# for section in section_urls:
+#     print(section)
+#     for i in section_urls[section]:
+#         print(i)
+#     print()
+
+article_urls = set()
+sect_url = list(section_urls["world"])[0]
+response = requests.get(sect_url)
+if (response.status_code == 200):
+        soup = BeautifulSoup(response.content, "html.parser")
+        a_tags = soup.find_all("a")
+        for a in a_tags:
+            if "href" in a.attrs:
+                url = a["href"]
+                if sect_url[:19] == "https://www.bbc.com":
+                    if any(chr.isdigit() for chr in url):
+                        if ((url[:15] == "https://www.bbc" or url[0] == '/') and url[:12] != "/news/topics"):
+                            if not any(chr == '{' for chr in url):
+                                if url[0] == '/':
+                                    url = "https://www.bbc.com" + url
+                                article_urls.add(url)
+
+i = 1
+for article_url in article_urls:
+    article = Article(article_url)
+    article.download()
+    article.parse()
+    article.nlp()
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size = 12)
+    pdf.cell(200, 10, txt = article.title, ln = 1, align = 'C')
+    pdf.multi_cell(0, 10, txt=article.summary, border=0, align='L')
+    filename = "articlepdfs/article" + str(i) + ".pdf"
+    try:
+        pdf.output(filename)
+    except:
+        continue
+    i += 1
